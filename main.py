@@ -166,4 +166,4 @@ def job():
 
 print("Running scheduled market report now...")
 job()
-print("Job completed. Exiting.")
+print("Job completed.")
