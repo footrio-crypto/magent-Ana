@@ -164,13 +164,6 @@ def job():
 # SCHEDULE
 # ==============================
 
-print("Running test report now...")
+print("Running scheduled market report now...")
 job()
-
-schedule.every().day.at(SEND_TIME).do(job)
-
-print(f"Market agent running. Scheduled at {SEND_TIME} daily.")
-
-while True:
-    schedule.run_pending()
-    time.sleep(60)
+print("Job completed. Exiting.")
