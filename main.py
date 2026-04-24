@@ -12,7 +12,6 @@ from email.message import EmailMessage
 EMAIL = os.environ.get("EMAIL")
 PASSWORD = os.environ.get("PASSWORD")
 SEND_TIME = os.environ.get("TIME", "21:30")
-TIMEZONE = os.environ.get("TIMEZONE", "Asia/Singapore")
 
 TICKERS = {
     "Gold": "GC=F",
@@ -25,26 +24,65 @@ TICKERS = {
     "Broadcom": "AVGO"
 }
 
+# ==============================
+# FETCH DATA
+# ==============================
+
 def fetch_data(ticker):
-    return yf.download(ticker, period="1y", progress=False)
+    df = yf.download(ticker, period="1y", progress=False)
+    return df
+
+# ==============================
+# SAFE CALCULATION (FIXED)
+# ==============================
 
 def calc(df):
-    latest = df["Close"].iloc[-1]
-    ytd_start = df[df.index >= f"{datetime.datetime.now().year}-01-01"]["Close"].iloc[0]
-    one_year_start = df["Close"].iloc[0]
+    close = df["Close"]
+
+    # If DataFrame (multi-column), take first column
+    if hasattr(close, "columns"):
+        close = close.iloc[:, 0]
+
+    # Drop NaN just in case
+    close = close.dropna()
+
+    if len(close) < 10:
+        return None, None, None
+
+    latest = close.iloc[-1]
+
+    year = datetime.datetime.now().year
+    ytd_data = close[close.index >= f"{year}-01-01"]
+
+    if len(ytd_data) == 0:
+        return None, None, None
+
+    ytd_start = ytd_data.iloc[0]
+    one_year_start = close.iloc[0]
 
     ytd = (latest - ytd_start) / ytd_start * 100
     one_year = (latest - one_year_start) / one_year_start * 100
 
     return round(float(latest), 2), round(float(ytd), 2), round(float(one_year), 2)
 
+# ==============================
+# CHART
+# ==============================
+
 def chart(df, name):
-    plt.figure()
-    df["Close"].plot(title=f"{name} - 1 Year Chart")
-    file = f"{name.replace(' ', '_')}.png"
-    plt.savefig(file, bbox_inches="tight")
-    plt.close()
-    return file
+    try:
+        plt.figure()
+        df["Close"].plot(title=f"{name} - 1 Year")
+        file = f"{name.replace(' ', '_')}.png"
+        plt.savefig(file, bbox_inches="tight")
+        plt.close()
+        return file
+    except:
+        return None
+
+# ==============================
+# EMAIL
+# ==============================
 
 def send_email(text):
     msg = EmailMessage()
@@ -53,20 +91,29 @@ def send_email(text):
     msg["To"] = EMAIL
     msg.set_content(text)
 
-    with open("market_report.pdf", "rb") as f:
-        msg.add_attachment(
-            f.read(),
-            maintype="application",
-            subtype="pdf",
-            filename="market_report.pdf"
-        )
+    try:
+        with open("market_report.pdf", "rb") as f:
+            msg.add_attachment(
+                f.read(),
+                maintype="application",
+                subtype="pdf",
+                filename="market_report.pdf"
+            )
+    except:
+        pass
 
     with smtplib.SMTP("smtp.office365.com", 587) as s:
         s.starttls()
         s.login(EMAIL, PASSWORD)
         s.send_message(msg)
 
+# ==============================
+# MAIN JOB
+# ==============================
+
 def job():
+    print("Running market job...")
+
     results = {}
     charts = []
 
@@ -78,13 +125,22 @@ def job():
 
         price, ytd, one_year = calc(df)
 
+        if price is None:
+            continue
+
         results[name] = {
             "price": price,
             "ytd": ytd,
             "1y": one_year
         }
 
-        charts.append(chart(df, name))
+        c = chart(df, name)
+        if c:
+            charts.append(c)
+
+    if len(results) == 0:
+        print("No data retrieved.")
+        return
 
     signals = analyze(results)
 
@@ -97,14 +153,20 @@ def job():
     for name, signal in signals.items():
         report += f"{name}: {signal}\n"
 
-    report += "\nSingapore Time: 9:30 PM scheduled report"
+    report += "\nScheduled time: 9:30 PM Singapore"
 
     create_pdf(report, charts)
     send_email(report)
 
-schedule.every().day.at(SEND_TIME, TIMEZONE).do(job)
+    print("Email sent successfully.")
 
-print(f"Market agent running. Daily report scheduled at {SEND_TIME} {TIMEZONE}.")
+# ==============================
+# SCHEDULE
+# ==============================
+
+schedule.every().day.at(SEND_TIME).do(job)
+
+print(f"Market agent running. Scheduled at {SEND_TIME} daily.")
 
 while True:
     schedule.run_pending()
