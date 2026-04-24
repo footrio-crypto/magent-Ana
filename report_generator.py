@@ -8,7 +8,7 @@ def create_pdf(report_text, charts):
     content = []
     content.append(Paragraph("Daily Market Intelligence Report", styles["Title"]))
     content.append(Spacer(1, 10))
-    content.append(Paragraph(report_text, styles["Normal"]))
+    content.append(Paragraph(report_text.replace("\n", "<br/>"), styles["Normal"]))
     content.append(Spacer(1, 20))
 
     for chart in charts:
