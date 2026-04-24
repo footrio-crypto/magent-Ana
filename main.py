@@ -164,6 +164,9 @@ def job():
 # SCHEDULE
 # ==============================
 
+print("Running test report now...")
+job()
+
 schedule.every().day.at(SEND_TIME).do(job)
 
 print(f"Market agent running. Scheduled at {SEND_TIME} daily.")
