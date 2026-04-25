@@ -1,17 +1,17 @@
-import yfinance as yf
-import datetime
-import schedule
-import time
 import os
-import matplotlib.pyplot as plt
-from analysis import analyze
-from report_generator import create_pdf
+import datetime
 import smtplib
 from email.message import EmailMessage
 
+import yfinance as yf
+import matplotlib.pyplot as plt
+
+from analysis import analyze
+from report_generator import create_pdf
+
+
 EMAIL = os.environ.get("EMAIL")
 PASSWORD = os.environ.get("PASSWORD")
-SEND_TIME = os.environ.get("TIME", "21:30")
 
 TICKERS = {
     "Gold": "GC=F",
@@ -21,41 +21,36 @@ TICKERS = {
     "NVIDIA": "NVDA",
     "Amazon": "AMZN",
     "Alphabet": "GOOGL",
-    "Broadcom": "AVGO"
+    "Broadcom": "AVGO",
 }
 
-# ==============================
-# FETCH DATA
-# ==============================
 
 def fetch_data(ticker):
-    df = yf.download(ticker, period="1y", progress=False)
-    return df
+    return yf.download(ticker, period="1y", progress=False, auto_adjust=False)
 
-# ==============================
-# SAFE CALCULATION (FIXED)
-# ==============================
 
-def calc(df):
+def get_close_series(df):
     close = df["Close"]
 
-    # If DataFrame (multi-column), take first column
     if hasattr(close, "columns"):
         close = close.iloc[:, 0]
 
-    # Drop NaN just in case
-    close = close.dropna()
+    return close.dropna()
 
-    if len(close) < 10:
-        return None, None, None
+
+def calculate_metrics(df):
+    close = get_close_series(df)
+
+    if close.empty:
+        return None
 
     latest = close.iloc[-1]
 
-    year = datetime.datetime.now().year
-    ytd_data = close[close.index >= f"{year}-01-01"]
+    current_year = datetime.datetime.now().year
+    ytd_data = close[close.index >= f"{current_year}-01-01"]
 
-    if len(ytd_data) == 0:
-        return None, None, None
+    if ytd_data.empty:
+        return None
 
     ytd_start = ytd_data.iloc[0]
     one_year_start = close.iloc[0]
@@ -63,53 +58,55 @@ def calc(df):
     ytd = (latest - ytd_start) / ytd_start * 100
     one_year = (latest - one_year_start) / one_year_start * 100
 
-    return round(float(latest), 2), round(float(ytd), 2), round(float(one_year), 2)
+    return {
+        "price": round(float(latest), 2),
+        "ytd": round(float(ytd), 2),
+        "1y": round(float(one_year), 2),
+    }
 
-# ==============================
-# CHART
-# ==============================
 
-def chart(df, name):
-    try:
-        plt.figure()
-        df["Close"].plot(title=f"{name} - 1 Year")
-        file = f"{name.replace(' ', '_')}.png"
-        plt.savefig(file, bbox_inches="tight")
-        plt.close()
-        return file
-    except:
+def create_chart(df, name):
+    close = get_close_series(df)
+
+    if close.empty:
         return None
 
-# ==============================
-# EMAIL
-# ==============================
+    filename = f"{name.replace(' ', '_')}.png"
 
-def send_email(text):
+    plt.figure(figsize=(8, 4))
+    close.plot(title=f"{name} - 1 Year Price Chart")
+    plt.xlabel("Date")
+    plt.ylabel("Price")
+    plt.tight_layout()
+    plt.savefig(filename)
+    plt.close()
+
+    return filename
+
+
+def send_email(report_text):
+    if not EMAIL or not PASSWORD:
+        raise ValueError("Missing EMAIL or PASSWORD GitHub secret.")
+
     msg = EmailMessage()
     msg["Subject"] = "Daily Market Report"
     msg["From"] = EMAIL
     msg["To"] = EMAIL
-    msg.set_content(text)
+    msg.set_content(report_text)
 
-    try:
-        with open("market_report.pdf", "rb") as f:
-            msg.add_attachment(
-                f.read(),
-                maintype="application",
-                subtype="pdf",
-                filename="market_report.pdf"
-            )
-    except:
-        pass
+    with open("market_report.pdf", "rb") as f:
+        msg.add_attachment(
+            f.read(),
+            maintype="application",
+            subtype="pdf",
+            filename="market_report.pdf",
+        )
 
-    with smtplib.SMTP("smtp.office365.com", 587) as s:
-        s.starttls()
-        s.login(EMAIL, PASSWORD)
-        s.send_message(msg)
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.starttls()
+        server.login(EMAIL, PASSWORD)
+        server.send_message(msg)
 
-# ==============================
-# MAIN JOB
-# ==============================
 
 def job():
     print("Running market job...")
@@ -118,51 +115,58 @@ def job():
     charts = []
 
     for name, ticker in TICKERS.items():
+        print(f"Fetching {name}...")
+
         df = fetch_data(ticker)
 
         if df.empty:
+            print(f"No data for {name}. Skipping.")
             continue
 
-        price, ytd, one_year = calc(df)
+        metrics = calculate_metrics(df)
 
-        if price is None:
+        if metrics is None:
+            print(f"Could not calculate metrics for {name}. Skipping.")
             continue
 
-        results[name] = {
-            "price": price,
-            "ytd": ytd,
-            "1y": one_year
-        }
+        results[name] = metrics
 
-        c = chart(df, name)
-        if c:
-            charts.append(c)
+        chart_file = create_chart(df, name)
+        if chart_file:
+            charts.append(chart_file)
 
-    if len(results) == 0:
-        print("No data retrieved.")
-        return
+    if not results:
+        raise ValueError("No market data retrieved.")
 
     signals = analyze(results)
 
-    report = "Daily Market Report\n\n"
+    today = datetime.datetime.now().strftime("%d %B %Y")
+
+    report = f"Daily Market Report - {today}\n\n"
+
+    report += "Market Numbers\n"
+    report += "----------------------\n"
 
     for name, data in results.items():
-        report += f"{name}: {data['price']} | YTD: {data['ytd']}% | 1Y: {data['1y']}%\n"
+        report += (
+            f"{name}: {data['price']} | "
+            f"YTD: {data['ytd']}% | "
+            f"1Y: {data['1y']}%\n"
+        )
 
-    report += "\nSignals:\n"
+    report += "\nSignals\n"
+    report += "----------------------\n"
+
     for name, signal in signals.items():
         report += f"{name}: {signal}\n"
 
-    report += "\nScheduled time: 9:30 PM Singapore"
+    report += "\nNote: This is for monitoring and education, not financial advice.\n"
 
     create_pdf(report, charts)
     send_email(report)
 
     print("Email sent successfully.")
 
-# ==============================
-# SCHEDULE
-# ==============================
 
 print("Running scheduled market report now...")
 job()
