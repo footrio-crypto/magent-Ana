@@ -1,8 +1,19 @@
 def analyze(results):
     signals = {}
 
-    signals["AI"] = "RISK" if results["NVIDIA"]["ytd"] > 30 else "BUY"
-    signals["Macro"] = "RISK" if results["Gold"]["ytd"] > 15 else "STABLE"
-    signals["DBS"] = "BUY" if results["DBS"]["ytd"] < 5 else "HOLD"
+    if "NVIDIA" in results and results["NVIDIA"]["ytd"] > 30:
+        signals["AI"] = "RISK - AI stocks may be overheated"
+    else:
+        signals["AI"] = "WATCH - AI trend stable"
+
+    if "Gold" in results and results["Gold"]["ytd"] > 15:
+        signals["Macro"] = "RISK - Gold strength suggests defensive demand"
+    else:
+        signals["Macro"] = "STABLE - No strong crisis signal"
+
+    if "DBS" in results and results["DBS"]["ytd"] < 5:
+        signals["DBS"] = "WATCH / BUY ZONE"
+    else:
+        signals["DBS"] = "HOLD / MONITOR"
 
     return signals
