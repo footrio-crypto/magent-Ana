@@ -25,19 +25,29 @@ TICKERS = {
 }
 
 
+# ==============================
+# FETCH DATA
+# ==============================
 def fetch_data(ticker):
-    return yf.download(ticker, period="1y", progress=False, auto_adjust=False)
+    return yf.download(ticker, period="1y", progress=False)
 
 
+# ==============================
+# SAFE CLOSE SERIES
+# ==============================
 def get_close_series(df):
     close = df["Close"]
 
+    # Fix if multi-column
     if hasattr(close, "columns"):
         close = close.iloc[:, 0]
 
     return close.dropna()
 
 
+# ==============================
+# CALCULATE METRICS
+# ==============================
 def calculate_metrics(df):
     close = get_close_series(df)
 
@@ -65,6 +75,9 @@ def calculate_metrics(df):
     }
 
 
+# ==============================
+# CREATE CHART
+# ==============================
 def create_chart(df, name):
     close = get_close_series(df)
 
@@ -75,8 +88,6 @@ def create_chart(df, name):
 
     plt.figure(figsize=(8, 4))
     close.plot(title=f"{name} - 1 Year Price Chart")
-    plt.xlabel("Date")
-    plt.ylabel("Price")
     plt.tight_layout()
     plt.savefig(filename)
     plt.close()
@@ -84,6 +95,9 @@ def create_chart(df, name):
     return filename
 
 
+# ==============================
+# SEND EMAIL (GMAIL ONLY)
+# ==============================
 def send_email(report_text):
     if not EMAIL or not PASSWORD:
         raise ValueError("Missing EMAIL or PASSWORD GitHub secret.")
@@ -102,12 +116,17 @@ def send_email(report_text):
             filename="market_report.pdf",
         )
 
+    print("Using Gmail SMTP...")
+
     with smtplib.SMTP("smtp.gmail.com", 587) as server:
         server.starttls()
         server.login(EMAIL, PASSWORD)
         server.send_message(msg)
 
 
+# ==============================
+# MAIN JOB
+# ==============================
 def job():
     print("Running market job...")
 
@@ -120,13 +139,13 @@ def job():
         df = fetch_data(ticker)
 
         if df.empty:
-            print(f"No data for {name}. Skipping.")
+            print(f"No data for {name}")
             continue
 
         metrics = calculate_metrics(df)
 
         if metrics is None:
-            print(f"Could not calculate metrics for {name}. Skipping.")
+            print(f"Skipping {name} (no metrics)")
             continue
 
         results[name] = metrics
@@ -160,7 +179,7 @@ def job():
     for name, signal in signals.items():
         report += f"{name}: {signal}\n"
 
-    report += "\nNote: This is for monitoring and education, not financial advice.\n"
+    report += "\nNote: Monitoring tool only, not financial advice.\n"
 
     create_pdf(report, charts)
     send_email(report)
@@ -168,6 +187,9 @@ def job():
     print("Email sent successfully.")
 
 
+# ==============================
+# RUN ONCE (for GitHub Actions)
+# ==============================
 print("Running scheduled market report now...")
 job()
 print("Job completed.")
