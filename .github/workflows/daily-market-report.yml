@@ -2,7 +2,7 @@ name: Daily Market Report
 
 on:
   schedule:
-    - cron: "30 13 * * *"   # 9:30 PM Singapore
+    - cron: "30 13 * * *"   # 9:30 PM Singapore time
   workflow_dispatch:
 
 jobs:
