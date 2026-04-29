@@ -118,11 +118,10 @@ def send_email(report_text):
 
     print("Using Gmail SMTP...")
 
-with smtplib.SMTP("smtp.gmail.com", 587) as server:
-    server.starttls()
-    server.login(EMAIL, PASSWORD)
-    server.send_message(msg)
-
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.starttls()
+        server.login(EMAIL, PASSWORD)
+        server.send_message(msg)
 # ==============================
 # MAIN JOB
 # ==============================
