@@ -38,8 +38,9 @@ def calculate_metrics(df):
         return None
 
     latest = close.iloc[-1]
-    current_year = datetime.datetime.now().year
+    previous = close.iloc[-2] if len(close) > 1 else close.iloc[-1]
 
+    current_year = datetime.datetime.now().year
     ytd_data = close[close.index >= f"{current_year}-01-01"]
 
     if ytd_data.empty:
@@ -48,6 +49,7 @@ def calculate_metrics(df):
     ytd_start = ytd_data.iloc[0]
     one_year_start = close.iloc[0]
 
+    one_day = (latest - previous) / previous * 100
     ytd = (latest - ytd_start) / ytd_start * 100
     one_year = (latest - one_year_start) / one_year_start * 100
 
@@ -61,10 +63,33 @@ def calculate_metrics(df):
 
     return {
         "price": round(float(latest), 2),
+        "1d": round(float(one_day), 2),
         "ytd": round(float(ytd), 2),
         "1y": round(float(one_year), 2),
         "chart": chart_data
     }
+
+
+def create_gold_alerts(results):
+    alerts = []
+
+    gold = results.get("Gold", {})
+    gold_price = gold.get("price", 0)
+    gold_ytd = gold.get("ytd", 0)
+
+    if gold_price < 170:
+        alerts.append("🔥 Gold Strategy: BUY ZONE below 170")
+    elif gold_price > 200:
+        alerts.append("⚠️ Gold Strategy: WAIT / OVERHEATED above 200")
+    else:
+        alerts.append("🟡 Gold Strategy: HOLD / MONTHLY GAUGE between 170 and 200")
+
+    if gold_ytd > 20:
+        alerts.append("⚠️ Gold has strong YTD performance. Avoid chasing emotionally.")
+    elif gold_ytd < 5:
+        alerts.append("🟢 Gold momentum is calmer. Good time to watch for accumulation.")
+
+    return alerts
 
 
 def job():
@@ -93,11 +118,12 @@ def job():
         raise ValueError("No market data retrieved.")
 
     signals = analyze(results)
+    alerts = create_gold_alerts(results)
 
     print("Collecting external market views...")
     market_views = collect_market_views()
 
-    create_html_dashboard(results, signals, market_views)
+    create_html_dashboard(results, signals, market_views, alerts)
 
     print("index.html created successfully.")
 
