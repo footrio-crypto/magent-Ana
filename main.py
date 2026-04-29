@@ -19,7 +19,7 @@ TICKERS = {
 
 
 def fetch_data(ticker):
-    return yf.download(ticker, period="1y", progress=False)
+    return yf.download(ticker, period="5y", progress=False)
 
 
 def get_close_series(df):
@@ -38,7 +38,7 @@ def calculate_metrics(df):
         return None
 
     latest = close.iloc[-1]
-    previous = close.iloc[-2] if len(close) > 1 else close.iloc[-1]
+    previous = close.iloc[-2] if len(close) > 1 else latest
 
     current_year = datetime.datetime.now().year
     ytd_data = close[close.index >= f"{current_year}-01-01"]
@@ -47,11 +47,15 @@ def calculate_metrics(df):
         return None
 
     ytd_start = ytd_data.iloc[0]
-    one_year_start = close.iloc[0]
+    one_year_start = close[close.index >= close.index[-1] - datetime.timedelta(days=365)].iloc[0]
+    three_year_start = close[close.index >= close.index[-1] - datetime.timedelta(days=365 * 3)].iloc[0]
+    five_year_start = close.iloc[0]
 
     one_day = (latest - previous) / previous * 100
     ytd = (latest - ytd_start) / ytd_start * 100
     one_year = (latest - one_year_start) / one_year_start * 100
+    three_year = (latest - three_year_start) / three_year_start * 100
+    five_year = (latest - five_year_start) / five_year_start * 100
 
     chart_data = []
 
@@ -66,6 +70,8 @@ def calculate_metrics(df):
         "1d": round(float(one_day), 2),
         "ytd": round(float(ytd), 2),
         "1y": round(float(one_year), 2),
+        "3y": round(float(three_year), 2),
+        "5y": round(float(five_year), 2),
         "chart": chart_data
     }
 
@@ -78,16 +84,16 @@ def create_gold_alerts(results):
     gold_ytd = gold.get("ytd", 0)
 
     if gold_price < 170:
-        alerts.append("🔥 Gold Strategy: BUY ZONE below 170")
+        alerts.append("Gold Strategy: BUY ZONE below 170")
     elif gold_price > 200:
-        alerts.append("⚠️ Gold Strategy: WAIT / OVERHEATED above 200")
+        alerts.append("Gold Strategy: WAIT / OVERHEATED above 200")
     else:
-        alerts.append("🟡 Gold Strategy: HOLD / MONTHLY GAUGE between 170 and 200")
+        alerts.append("Gold Strategy: HOLD / MONTHLY GAUGE between 170 and 200")
 
     if gold_ytd > 20:
-        alerts.append("⚠️ Gold has strong YTD performance. Avoid chasing emotionally.")
+        alerts.append("Gold has strong YTD performance. Avoid chasing emotionally.")
     elif gold_ytd < 5:
-        alerts.append("🟢 Gold momentum is calmer. Good time to watch for accumulation.")
+        alerts.append("Gold momentum is calmer. Watch for accumulation zone.")
 
     return alerts
 
@@ -99,7 +105,6 @@ def job():
 
     for name, ticker in TICKERS.items():
         print(f"Fetching {name}...")
-
         df = fetch_data(ticker)
 
         if df.empty:
