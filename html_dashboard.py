@@ -3,7 +3,7 @@ import datetime
 
 
 def create_html_dashboard(results, signals, market_views, alerts):
-    updated_at = datetime.datetime.utcnow().strftime("%d %B %Y, %H:%M UTC")
+    updated_at = datetime.datetime.utcnow().strftime("%B %d, %Y %I:%M %p UTC")
 
     data_json = json.dumps(results)
     signals_json = json.dumps(signals)
@@ -28,281 +28,506 @@ def create_html_dashboard(results, signals, market_views, alerts):
 
     body {{
       margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: radial-gradient(circle at top, #102033 0%, #07111f 45%, #030712 100%);
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(20, 55, 90, 0.65), transparent 32%),
+        radial-gradient(circle at top right, rgba(35, 20, 70, 0.45), transparent 28%),
+        linear-gradient(135deg, #06101d 0%, #071522 42%, #020617 100%);
       color: #e5e7eb;
+      min-height: 100vh;
+    }}
+
+    .app {{
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 26px;
     }}
 
     header {{
-      padding: 24px;
       display: flex;
       justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 26px;
+    }}
+
+    .brand {{
+      display: flex;
+      gap: 18px;
       align-items: center;
-      gap: 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
     }}
 
-    .title-wrap h1 {{
-      margin: 0;
+    .logo {{
+      width: 52px;
+      height: 52px;
+      border: 2px solid rgba(255,255,255,0.88);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 30px;
-      letter-spacing: -0.5px;
+      box-shadow: 0 0 30px rgba(96,165,250,0.16);
     }}
 
-    .title-wrap p {{
-      margin: 8px 0 0;
-      color: #9ca3af;
+    h1 {{
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: -0.8px;
+      color: #f8fafc;
+    }}
+
+    .subtitle {{
+      margin-top: 8px;
+      color: #cbd5e1;
+      font-size: 16px;
     }}
 
     .updated {{
       text-align: right;
       color: #cbd5e1;
       font-size: 14px;
+      line-height: 1.5;
     }}
 
-    .container {{
-      max-width: 1280px;
-      margin: auto;
-      padding: 24px;
+    .refresh {{
+      margin-top: 8px;
+      display: inline-flex;
+      width: 46px;
+      height: 46px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: rgba(15,23,42,0.82);
+      border: 1px solid rgba(148,163,184,0.24);
+      color: #e5e7eb;
+      font-size: 24px;
     }}
 
-    .grid {{
+    .top-grid {{
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      grid-template-columns: repeat(5, 1fr);
       gap: 16px;
+      margin-bottom: 18px;
     }}
 
-    .wide-grid {{
+    .dashboard-grid {{
       display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 16px;
+      grid-template-columns: 1.45fr 0.95fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }}
+
+    .bottom-grid {{
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 18px;
     }}
 
     .card {{
-      background: rgba(15, 23, 42, 0.86);
-      border: 1px solid rgba(148, 163, 184, 0.20);
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+      background: linear-gradient(180deg, rgba(15,23,42,0.88), rgba(8,18,31,0.92));
+      border: 1px solid rgba(148,163,184,0.22);
+      border-radius: 16px;
+      box-shadow:
+        0 20px 48px rgba(0,0,0,0.32),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+      overflow: hidden;
     }}
 
-    .card h2 {{
-      margin: 0 0 12px;
-      font-size: 18px;
-    }}
-
-    .price {{
-      font-size: 28px;
-      font-weight: 800;
-      margin: 8px 0;
-    }}
-
-    .positive {{
-      color: #22c55e;
-      font-weight: 700;
-    }}
-
-    .negative {{
-      color: #ef4444;
-      font-weight: 700;
-    }}
-
-    .neutral {{
-      color: #facc15;
-      font-weight: 700;
-    }}
-
-    .section-title {{
-      margin: 30px 0 14px;
-      font-size: 22px;
-    }}
-
-    .asset-row {{
+    .metric-card {{
+      padding: 20px;
+      min-height: 126px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
     }}
 
-    .symbol {{
+    .metric-icon {{
+      width: 46px;
+      height: 46px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 28px;
+      flex-shrink: 0;
     }}
 
-    canvas {{
-      max-height: 320px;
+    .gold-bg {{ background: rgba(245,158,11,0.16); }}
+    .silver-bg {{ background: rgba(203,213,225,0.14); }}
+    .dbs-bg {{ background: rgba(239,68,68,0.17); }}
+    .boc-bg {{ background: rgba(220,38,38,0.17); }}
+    .ai-bg {{ background: rgba(168,85,247,0.18); }}
+
+    .metric-title {{
+      font-weight: 800;
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: #f8fafc;
     }}
 
-    .signal-table {{
+    .metric-price {{
+      font-size: 25px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      color: #f8fafc;
+    }}
+
+    .metric-change {{
+      font-size: 14px;
+      font-weight: 800;
+    }}
+
+    .positive {{ color: #22c55e; }}
+    .negative {{ color: #ff3b30; }}
+    .neutral {{ color: #facc15; }}
+    .purple {{ color: #a78bfa; }}
+
+    .panel-title {{
+      padding: 18px 22px 10px;
+      font-size: 20px;
+      font-weight: 900;
+      color: #f8fafc;
+    }}
+
+    .chart-card {{
+      padding: 0 22px 20px;
+      min-height: 370px;
+    }}
+
+    .chart-tabs {{
+      display: flex;
+      gap: 10px;
+      margin: 8px 0 18px;
+    }}
+
+    .tab {{
+      padding: 9px 16px;
+      border-radius: 9px;
+      background: rgba(15,23,42,0.95);
+      border: 1px solid rgba(148,163,184,0.22);
+      color: #e5e7eb;
+      font-weight: 800;
+      font-size: 14px;
+    }}
+
+    .tab.active {{
+      background: rgba(59,130,246,0.18);
+      border-color: rgba(96,165,250,0.45);
+      box-shadow: 0 0 20px rgba(96,165,250,0.12);
+    }}
+
+    #combinedChart {{
+      height: 270px !important;
+    }}
+
+    .insights {{
+      padding: 8px 24px 22px;
+    }}
+
+    .insight-row {{
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(148,163,184,0.16);
+    }}
+
+    .insight-row:last-child {{
+      border-bottom: none;
+    }}
+
+    .insight-icon {{
+      width: 48px;
+      height: 48px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }}
+
+    .insight-title {{
+      font-weight: 900;
+      margin-bottom: 6px;
+      font-size: 16px;
+    }}
+
+    .insight-text {{
+      color: #d1d5db;
+      line-height: 1.45;
+      font-size: 15px;
+    }}
+
+    .table-card {{
+      padding-bottom: 12px;
+    }}
+
+    table {{
       width: 100%;
       border-collapse: collapse;
     }}
 
-    .signal-table th,
-    .signal-table td {{
-      padding: 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+    th, td {{
+      padding: 15px 22px;
       text-align: left;
+      border-bottom: 1px solid rgba(148,163,184,0.14);
+      font-size: 15px;
+    }}
+
+    th {{
+      color: #e5e7eb;
+      font-weight: 900;
+      background: rgba(15,23,42,0.34);
+    }}
+
+    td {{
+      color: #e5e7eb;
     }}
 
     .signal-badge {{
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-weight: 800;
-      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.3px;
     }}
 
-    .buy {{
-      background: rgba(34,197,94,0.16);
-      color: #22c55e;
-    }}
-
-    .hold {{
-      background: rgba(250,204,21,0.16);
-      color: #facc15;
-    }}
-
-    .risk, .wait {{
-      background: rgba(239,68,68,0.16);
-      color: #ef4444;
-    }}
-
-    .watch {{
-      background: rgba(96,165,250,0.16);
-      color: #60a5fa;
-    }}
+    .buy {{ color: #22c55e; }}
+    .hold {{ color: #facc15; }}
+    .watch {{ color: #60a5fa; }}
+    .risk, .wait, .sell {{ color: #ff3b30; }}
 
     .strength {{
       display: flex;
-      gap: 4px;
+      gap: 5px;
     }}
 
     .bar {{
-      width: 8px;
-      height: 18px;
+      width: 9px;
+      height: 17px;
       border-radius: 3px;
-      background: #334155;
+      background: rgba(71,85,105,0.85);
     }}
 
     .bar.on {{
       background: #22c55e;
+      box-shadow: 0 0 8px rgba(34,197,94,0.25);
     }}
 
-    .alert-card {{
-      border-left: 4px solid #facc15;
+    .views-card {{
+      padding-bottom: 12px;
+    }}
+
+    .view-row {{
+      display: grid;
+      grid-template-columns: 38px 135px 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 22px;
+      border-bottom: 1px solid rgba(148,163,184,0.14);
+    }}
+
+    .view-row:last-child {{
+      border-bottom: none;
+    }}
+
+    .source-icon {{
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: white;
+      background: #334155;
+    }}
+
+    .source-name {{
+      font-weight: 900;
+      color: #f8fafc;
     }}
 
     .headline {{
-      margin-bottom: 10px;
-      color: #cbd5e1;
+      color: #d1d5db;
       font-size: 14px;
-      line-height: 1.4;
+      line-height: 1.35;
     }}
 
-    footer {{
-      text-align: center;
-      padding: 28px;
+    .alerts-strip {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }}
+
+    .alert {{
+      padding: 14px 18px;
+      border-left: 4px solid #facc15;
+      background: rgba(15,23,42,0.86);
+      border-radius: 14px;
+      border-top: 1px solid rgba(148,163,184,0.16);
+      border-right: 1px solid rgba(148,163,184,0.16);
+      border-bottom: 1px solid rgba(148,163,184,0.16);
+      font-weight: 800;
+      color: #f8fafc;
+    }}
+
+    .disclaimer {{
+      margin: 28px 24px 6px;
       color: #9ca3af;
-      font-size: 13px;
+      font-size: 14px;
     }}
 
-    @media (max-width: 800px) {{
+    @media (max-width: 1100px) {{
+      .top-grid {{
+        grid-template-columns: repeat(2, 1fr);
+      }}
+
+      .dashboard-grid,
+      .bottom-grid {{
+        grid-template-columns: 1fr;
+      }}
+    }}
+
+    @media (max-width: 640px) {{
+      .app {{
+        padding: 14px;
+      }}
+
       header {{
-        display: block;
+        flex-direction: column;
+      }}
+
+      .brand {{
+        align-items: flex-start;
+      }}
+
+      .logo {{
+        width: 42px;
+        height: 42px;
+        font-size: 24px;
+      }}
+
+      h1 {{
+        font-size: 25px;
+      }}
+
+      .subtitle {{
+        font-size: 14px;
       }}
 
       .updated {{
         text-align: left;
-        margin-top: 14px;
       }}
 
-      .wide-grid {{
+      .top-grid {{
         grid-template-columns: 1fr;
       }}
 
-      .title-wrap h1 {{
-        font-size: 24px;
+      .metric-card {{
+        min-height: 108px;
+        padding: 16px;
       }}
 
-      .container {{
-        padding: 14px;
+      .metric-price {{
+        font-size: 23px;
       }}
 
-      .card {{
-        padding: 14px;
-        border-radius: 14px;
+      .panel-title {{
+        padding: 16px 16px 8px;
       }}
 
-      .price {{
-        font-size: 24px;
+      .chart-card {{
+        padding: 0 14px 16px;
       }}
 
-      .signal-table th,
-      .signal-table td {{
-        padding: 9px 6px;
-        font-size: 13px;
+      .chart-tabs {{
+        overflow-x: auto;
+      }}
+
+      th, td {{
+        padding: 11px 10px;
+        font-size: 12px;
+      }}
+
+      .view-row {{
+        grid-template-columns: 32px 1fr;
+      }}
+
+      .headline {{
+        grid-column: 2 / 3;
       }}
     }}
   </style>
 </head>
 
 <body>
-  <header>
-    <div class="title-wrap">
-      <h1>📈 Market Intelligence Dashboard</h1>
-      <p>Daily Market Overview with AI Insights & External Intelligence</p>
-    </div>
-    <div class="updated">
-      <div>Last Updated</div>
-      <strong>{updated_at}</strong>
-    </div>
-  </header>
-
-  <div class="container">
-
-    <h2 class="section-title">Market Snapshot</h2>
-    <div class="grid" id="marketCards"></div>
-
-    <h2 class="section-title">Gold Strategy Alerts</h2>
-    <div class="grid" id="alerts"></div>
-
-    <div class="wide-grid">
-      <div>
-        <h2 class="section-title">Price Trends</h2>
-        <div class="card">
-          <canvas id="combinedChart"></canvas>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="logo">↗</div>
+        <div>
+          <h1>Market Intelligence Dashboard</h1>
+          <div class="subtitle">Daily Market Overview with AI Insights & External Intelligence</div>
         </div>
       </div>
-
-      <div>
-        <h2 class="section-title">AI Market Insights</h2>
-        <div class="card" id="insights"></div>
+      <div class="updated">
+        <div>Last Updated:</div>
+        <strong>{updated_at}</strong>
+        <div class="refresh">↻</div>
       </div>
+    </header>
+
+    <div class="top-grid" id="topCards"></div>
+
+    <div class="alerts-strip" id="alerts"></div>
+
+    <div class="dashboard-grid">
+      <section class="card">
+        <div class="panel-title">Price Trends <span style="font-size:14px; color:#cbd5e1;">(1 Year)</span></div>
+        <div class="chart-card">
+          <div class="chart-tabs">
+            <div class="tab active">1Y</div>
+            <div class="tab">YTD</div>
+            <div class="tab">1M</div>
+            <div class="tab">5D</div>
+          </div>
+          <canvas id="combinedChart"></canvas>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="panel-title">AI Market Insights</div>
+        <div class="insights" id="insights"></div>
+      </section>
     </div>
 
-    <h2 class="section-title">Trading Signals</h2>
-    <div class="card">
-      <table class="signal-table">
-        <thead>
-          <tr>
-            <th>Market</th>
-            <th>Signal</th>
-            <th>Strength</th>
-            <th>Key Level</th>
-            <th>Outlook</th>
-          </tr>
-        </thead>
-        <tbody id="signalRows"></tbody>
-      </table>
+    <div class="bottom-grid">
+      <section class="card table-card">
+        <div class="panel-title">Trading Signals</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Market</th>
+              <th>Signal</th>
+              <th>Strength</th>
+              <th>Key Level</th>
+              <th>Outlook</th>
+            </tr>
+          </thead>
+          <tbody id="signalRows"></tbody>
+        </table>
+      </section>
+
+      <section class="card views-card">
+        <div class="panel-title">External Market Views</div>
+        <div id="views"></div>
+      </section>
     </div>
 
-    <h2 class="section-title">External Market Views</h2>
-    <div class="grid" id="views"></div>
-
+    <div class="disclaimer">
+      <strong>Disclaimer:</strong> This dashboard is for informational and educational purposes only and not financial advice.
+    </div>
   </div>
-
-  <footer>
-    Disclaimer: This dashboard is for monitoring and education only. It is not financial advice.
-  </footer>
 
 <script>
 const marketData = {data_json};
@@ -320,20 +545,37 @@ function symbolFor(name) {{
   const symbols = {{
     "Gold": "🟡",
     "Silver": "⚪",
-    "DBS": "🏦",
-    "Bank of China": "🏛️",
-    "NVIDIA": "🤖",
+    "DBS": "✖️",
+    "Bank of China": "⭕",
+    "NVIDIA": "🧠",
     "Amazon": "🛒",
     "Alphabet": "🔎",
-    "Broadcom": "🔌"
+    "Broadcom": "🔌",
+    "AI Stocks": "🧠"
   }};
   return symbols[name] || "📊";
 }}
 
+function iconClass(name) {{
+  if (name === "Gold") return "gold-bg";
+  if (name === "Silver") return "silver-bg";
+  if (name === "DBS") return "dbs-bg";
+  if (name === "Bank of China") return "boc-bg";
+  return "ai-bg";
+}}
+
+function formatPrice(name, price) {{
+  if (name === "DBS") return "S$" + price;
+  if (name === "Bank of China") return "HK$" + price;
+  if (name === "Gold" || name === "Silver") return "$" + price;
+  return "$" + price;
+}}
+
 function badgeClass(signal) {{
-  const s = signal.toLowerCase();
+  const s = String(signal).toLowerCase();
   if (s.includes("buy")) return "buy";
   if (s.includes("risk")) return "risk";
+  if (s.includes("sell")) return "sell";
   if (s.includes("wait")) return "wait";
   if (s.includes("watch")) return "watch";
   return "hold";
@@ -348,49 +590,80 @@ function strengthBars(level) {{
   return html;
 }}
 
-const marketCards = document.getElementById("marketCards");
+const topCards = document.getElementById("topCards");
+const preferredTop = ["Gold", "Silver", "DBS", "Bank of China", "NVIDIA"];
 
-Object.entries(marketData).forEach(([name, data]) => {{
+preferredTop.forEach(name => {{
+  if (!marketData[name]) return;
+  const data = marketData[name];
   const card = document.createElement("div");
-  card.className = "card";
+  card.className = "card metric-card";
+
+  let title = name;
+  if (name === "Gold") title = "Gold (XAU/USD)";
+  if (name === "Silver") title = "Silver (XAG/USD)";
+  if (name === "DBS") title = "DBS Group (D05.SI)";
+  if (name === "Bank of China") title = "Bank of China (3988.HK)";
+  if (name === "NVIDIA") title = "AI Market Sentiment";
+
+  let priceText = formatPrice(name, data.price);
+  let changeText = `${{data["1d"]}}%`;
+  let changeClass = pctClass(data["1d"]);
+
+  if (name === "NVIDIA") {{
+    const aiSignal = signals["AI Stocks"] ? signals["AI Stocks"].signal : "Neutral";
+    priceText = aiSignal;
+    changeText = "Confidence: " + ((signals["AI Stocks"]?.strength || 3) * 20) + "%";
+    changeClass = "purple";
+  }}
 
   card.innerHTML = `
-    <div class="asset-row">
-      <div>
-        <h2>${{name}}</h2>
-        <div class="price">${{data.price}}</div>
-      </div>
-      <div class="symbol">${{symbolFor(name)}}</div>
+    <div class="metric-icon ${{iconClass(name)}}">${{symbolFor(name)}}</div>
+    <div>
+      <div class="metric-title">${{title}}</div>
+      <div class="metric-price ${{name === "NVIDIA" ? "purple" : ""}}">${{priceText}}</div>
+      <div class="metric-change ${{changeClass}}">${{changeText}}</div>
     </div>
-    <p>1D: <span class="${{pctClass(data["1d"])}}">${{data["1d"]}}%</span></p>
-    <p>YTD: <span class="${{pctClass(data.ytd)}}">${{data.ytd}}%</span></p>
-    <p>1Y: <span class="${{pctClass(data["1y"])}}">${{data["1y"]}}%</span></p>
   `;
-
-  marketCards.appendChild(card);
+  topCards.appendChild(card);
 }});
 
 const alertsDiv = document.getElementById("alerts");
-
 alerts.forEach(alert => {{
-  const card = document.createElement("div");
-  card.className = "card alert-card";
-  card.innerHTML = `<strong>${{alert}}</strong>`;
-  alertsDiv.appendChild(card);
+  const div = document.createElement("div");
+  div.className = "alert";
+  div.textContent = alert;
+  alertsDiv.appendChild(div);
 }});
 
-const datasets = Object.entries(marketData).map(([name, data]) => {{
-  return {{
-    label: name,
-    data: data.chart.map(item => item.price),
-    borderWidth: 2,
-    tension: 0.25,
-    pointRadius: 0
-  }};
-}});
+const chartNames = ["Gold", "Silver", "DBS", "Bank of China"];
+const chartColors = {{
+  "Gold": "#facc15",
+  "Silver": "#e5e7eb",
+  "DBS": "#ff3b30",
+  "Bank of China": "#22c55e"
+}};
 
-const firstAsset = Object.values(marketData)[0];
+const firstAsset = marketData[chartNames.find(n => marketData[n])];
 const labels = firstAsset.chart.map(item => item.date);
+
+const datasets = chartNames
+  .filter(name => marketData[name])
+  .map(name => {{
+    const series = marketData[name].chart;
+    const first = series[0].price;
+    const normalized = series.map(item => Number((((item.price - first) / first) * 100).toFixed(2)));
+
+    return {{
+      label: name,
+      data: normalized,
+      borderColor: chartColors[name],
+      backgroundColor: chartColors[name],
+      borderWidth: 2,
+      tension: 0.25,
+      pointRadius: 0
+    }};
+  }});
 
 new Chart(document.getElementById("combinedChart"), {{
   type: "line",
@@ -400,88 +673,102 @@ new Chart(document.getElementById("combinedChart"), {{
   }},
   options: {{
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {{
       legend: {{
+        position: "right",
         labels: {{
-          color: "#e5e7eb"
+          color: "#e5e7eb",
+          boxWidth: 10,
+          boxHeight: 10,
+          usePointStyle: true
+        }}
+      }},
+      tooltip: {{
+        callbacks: {{
+          label: function(context) {{
+            return context.dataset.label + ": " + context.parsed.y + "%";
+          }}
         }}
       }}
     }},
     scales: {{
       x: {{
-        ticks: {{
-          color: "#9ca3af",
-          maxTicksLimit: 6
-        }},
-        grid: {{
-          color: "rgba(255,255,255,0.08)"
-        }}
+        ticks: {{ color: "#cbd5e1", maxTicksLimit: 7 }},
+        grid: {{ color: "rgba(148,163,184,0.10)" }}
       }},
       y: {{
         ticks: {{
-          color: "#9ca3af"
+          color: "#cbd5e1",
+          callback: value => value + "%"
         }},
-        grid: {{
-          color: "rgba(255,255,255,0.08)"
-        }}
+        grid: {{ color: "rgba(148,163,184,0.12)" }}
       }}
     }}
   }}
 }});
 
 const insights = document.getElementById("insights");
+const goldSignal = signals["Gold"]?.signal || "HOLD";
+const dbsSignal = signals["DBS"]?.signal || "HOLD";
+const aiSignal = signals["AI Stocks"]?.signal || "HOLD";
 
 insights.innerHTML = `
-  <p><strong class="positive">Precious Metals</strong><br>
-  Gold and silver are tracked for defensive demand, inflation expectations, and safe-haven flow.</p>
+  <div class="insight-row">
+    <div class="insight-icon" style="background:rgba(34,197,94,0.15); color:#22c55e;">↗</div>
+    <div>
+      <div class="insight-title positive">Precious Metals</div>
+      <div class="insight-text">Gold signal is <strong>${{goldSignal}}</strong>. Monitor safe-haven demand, USD direction, and inflation expectations.</div>
+    </div>
+  </div>
 
-  <p><strong class="neutral">Financial Markets</strong><br>
-  DBS and Bank of China are monitored for income, macro stability, and policy sensitivity.</p>
+  <div class="insight-row">
+    <div class="insight-icon" style="background:rgba(239,68,68,0.15); color:#ef4444;">🏦</div>
+    <div>
+      <div class="insight-title negative">Financial Markets</div>
+      <div class="insight-text">DBS signal is <strong>${{dbsSignal}}</strong>. Bank of China remains policy-sensitive and linked to China macro sentiment.</div>
+    </div>
+  </div>
 
-  <p><strong style="color:#a78bfa;">AI Market Sentiment</strong><br>
-  AI stocks are watched for momentum, valuation risk, and DeepSeek-related efficiency disruption.</p>
+  <div class="insight-row">
+    <div class="insight-icon" style="background:rgba(168,85,247,0.15); color:#a78bfa;">🌐</div>
+    <div>
+      <div class="insight-title purple">Overall Sentiment</div>
+      <div class="insight-text">AI market signal is <strong>${{aiSignal}}</strong>. Monitor DeepSeek disruption, valuation pressure, and momentum shifts.</div>
+    </div>
+  </div>
 `;
 
 const signalRows = document.getElementById("signalRows");
-
 Object.entries(signals).forEach(([market, data]) => {{
   const row = document.createElement("tr");
-
   row.innerHTML = `
     <td>${{symbolFor(market)}} ${{market}}</td>
     <td><span class="signal-badge ${{badgeClass(data.signal)}}">${{data.signal}}</span></td>
-    <td>${{strengthBars(data.strength)}}</td>
-    <td>${{data.key_level}}</td>
-    <td>${{data.outlook}}</td>
+    <td>${{strengthBars(data.strength || 3)}}</td>
+    <td>${{data.key_level || "-"}}</td>
+    <td><span class="${{badgeClass(data.signal)}}">${{data.outlook || "-"}}</span></td>
   `;
-
   signalRows.appendChild(row);
 }});
 
 const viewsDiv = document.getElementById("views");
+const sources = Object.entries(views).slice(0, 5);
 
-Object.entries(views).forEach(([asset, data]) => {{
-  const card = document.createElement("div");
-  card.className = "card";
-
-  let headlines = "";
-
+sources.forEach(([asset, data], idx) => {{
+  let headline = "No headline found.";
   if (data.headlines && data.headlines.length > 0) {{
-    headlines = data.headlines
-      .map(item => `<div class="headline">• ${{item.title}}</div>`)
-      .join("");
-  }} else {{
-    headlines = "<p>No headlines found.</p>";
+    headline = data.headlines[0].title;
   }}
 
-  card.innerHTML = `
-    <h2>${{asset}}</h2>
-    <p><strong>${{data.sentiment}}</strong></p>
-    <p>Positive score: ${{data.positive_score}} | Negative score: ${{data.negative_score}}</p>
-    ${{headlines}}
+  const row = document.createElement("div");
+  row.className = "view-row";
+  row.innerHTML = `
+    <div class="source-icon">${{asset[0]}}</div>
+    <div class="source-name">${{asset}}</div>
+    <div class="headline">${{headline}}</div>
   `;
-
-  viewsDiv.appendChild(card);
+  viewsDiv.appendChild(row);
 }});
 </script>
 
