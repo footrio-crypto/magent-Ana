@@ -1,3 +1,4 @@
+from news_sentiment import collect_market_views, format_market_views
 import os
 import datetime
 import smtplib
@@ -177,7 +178,10 @@ def job():
     for name, signal in signals.items():
         report += f"{name}: {signal}\n"
 
-    report += "\nNote: Monitoring tool only, not financial advice.\n"
+market_views = collect_market_views()
+report += format_market_views(market_views)
+
+report += "\n\nNote: Monitoring tool only, not financial advice.\n"
 
     create_pdf(report, charts)
     send_email(report)
