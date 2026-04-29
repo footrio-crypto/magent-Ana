@@ -15,7 +15,7 @@ def create_html_dashboard(results, signals, market_views):
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Felia Market Intelligence Dashboard</title>
+  <title>Magent Market Intelligence Dashboard</title>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
