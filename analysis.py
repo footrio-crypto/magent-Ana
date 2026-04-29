@@ -1,19 +1,28 @@
 def analyze(results):
     signals = {}
 
-    if "NVIDIA" in results and results["NVIDIA"]["ytd"] > 30:
-        signals["AI"] = "RISK - AI stocks may be overheated"
-    else:
-        signals["AI"] = "WATCH - AI trend stable"
+    gold = results.get("Gold", {})
+    dbs = results.get("DBS", {})
+    ai = results.get("NVIDIA", {})
 
-    if "Gold" in results and results["Gold"]["ytd"] > 15:
-        signals["Macro"] = "RISK - Gold strength suggests defensive demand"
+    # GOLD STRATEGY
+    if gold.get("ytd", 0) > 15:
+        signals["Gold"] = "SELL / TAKE PROFIT"
+    elif gold.get("ytd", 0) < 5:
+        signals["Gold"] = "BUY / ACCUMULATE"
     else:
-        signals["Macro"] = "STABLE - No strong crisis signal"
+        signals["Gold"] = "HOLD"
 
-    if "DBS" in results and results["DBS"]["ytd"] < 5:
-        signals["DBS"] = "WATCH / BUY ZONE"
+    # DBS STRATEGY
+    if dbs.get("ytd", 0) < 3:
+        signals["DBS"] = "BUY"
     else:
-        signals["DBS"] = "HOLD / MONITOR"
+        signals["DBS"] = "HOLD"
+
+    # AI STOCKS
+    if ai.get("ytd", 0) > 40:
+        signals["AI"] = "RISK / TRIM"
+    else:
+        signals["AI"] = "HOLD"
 
     return signals
