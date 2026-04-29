@@ -1,4 +1,3 @@
-from news_sentiment import collect_market_views, format_market_views
 import os
 import datetime
 import smtplib
@@ -9,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from analysis import analyze
 from report_generator import create_pdf
+from news_sentiment import collect_market_views, format_market_views
 
 
 EMAIL = os.environ.get("EMAIL")
@@ -26,29 +26,19 @@ TICKERS = {
 }
 
 
-# ==============================
-# FETCH DATA
-# ==============================
 def fetch_data(ticker):
     return yf.download(ticker, period="1y", progress=False)
 
 
-# ==============================
-# SAFE CLOSE SERIES
-# ==============================
 def get_close_series(df):
     close = df["Close"]
 
-    # Fix if multi-column
     if hasattr(close, "columns"):
         close = close.iloc[:, 0]
 
     return close.dropna()
 
 
-# ==============================
-# CALCULATE METRICS
-# ==============================
 def calculate_metrics(df):
     close = get_close_series(df)
 
@@ -56,7 +46,6 @@ def calculate_metrics(df):
         return None
 
     latest = close.iloc[-1]
-
     current_year = datetime.datetime.now().year
     ytd_data = close[close.index >= f"{current_year}-01-01"]
 
@@ -76,9 +65,6 @@ def calculate_metrics(df):
     }
 
 
-# ==============================
-# CREATE CHART
-# ==============================
 def create_chart(df, name):
     close = get_close_series(df)
 
@@ -96,9 +82,6 @@ def create_chart(df, name):
     return filename
 
 
-# ==============================
-# SEND EMAIL (GMAIL ONLY)
-# ==============================
 def send_email(report_text):
     if not EMAIL or not PASSWORD:
         raise ValueError("Missing EMAIL or PASSWORD GitHub secret.")
@@ -123,9 +106,8 @@ def send_email(report_text):
         server.starttls()
         server.login(EMAIL, PASSWORD)
         server.send_message(msg)
-# ==============================
-# MAIN JOB
-# ==============================
+
+
 def job():
     print("Running market job...")
 
@@ -144,7 +126,7 @@ def job():
         metrics = calculate_metrics(df)
 
         if metrics is None:
-            print(f"Skipping {name} (no metrics)")
+            print(f"Skipping {name} - no metrics")
             continue
 
         results[name] = metrics
@@ -178,10 +160,11 @@ def job():
     for name, signal in signals.items():
         report += f"{name}: {signal}\n"
 
-market_views = collect_market_views()
-report += format_market_views(market_views)
+    print("Collecting external market views...")
+    market_views = collect_market_views()
+    report += format_market_views(market_views)
 
-report += "\n\nNote: Monitoring tool only, not financial advice.\n"
+    report += "\n\nNote: Monitoring tool only, not financial advice.\n"
 
     create_pdf(report, charts)
     send_email(report)
@@ -189,9 +172,6 @@ report += "\n\nNote: Monitoring tool only, not financial advice.\n"
     print("Email sent successfully.")
 
 
-# ==============================
-# RUN ONCE (for GitHub Actions)
-# ==============================
 print("Running scheduled market report now...")
 job()
 print("Job completed.")
