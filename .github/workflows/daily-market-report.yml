@@ -1,24 +1,19 @@
-name: Daily Market Dashboard
+name: Build Market Dashboard
 
 on:
-  schedule:
-    - cron: "30 13 * * *"   # 9:30 PM Singapore time
   workflow_dispatch:
-
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+  schedule:
+    - cron: "30 13 * * *"
 
 jobs:
-  build-dashboard:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -26,13 +21,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Generate dashboard
+      - name: Run dashboard generator
         run: python main.py
 
-      - name: Commit updated dashboard
+      - name: Commit index.html
         run: |
           git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.email "actions@github.com"
           git add index.html
-          git commit -m "Update market dashboard" || echo "No changes to commit"
+          git commit -m "update dashboard" || echo "no changes"
           git push
